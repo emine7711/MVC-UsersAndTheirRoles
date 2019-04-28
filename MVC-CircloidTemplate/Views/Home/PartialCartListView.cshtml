@@ -1,0 +1,82 @@
+﻿@{
+    ViewBag.Title = "Sepet";
+}
+
+@using MVC_CircloidTemplate.App_Classes
+@using MVC_CircloidTemplate.Models
+
+@model List<Product>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Ürün Adı</th>
+            <th>Kategori Adı</th>
+            <th>Fiyat</th>
+            <th>Sepetten Çıkar</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ Cart crt;
+            if (Session["CurrentCart"] != null)
+            {
+                crt = (Cart)Session["CurrentCart"];
+            }
+            else
+            {
+                crt = new Cart();
+            }
+        }
+        @foreach (Product prd in crt.PrdList)
+        {
+            <tr>
+                <td>@prd.ProductName</td>
+                @if (prd.Category == null)
+                {
+                    <td></td>
+                }
+                else
+                {
+                    <td><span class="label label-info">@prd.Category.CategoryName</span></td>
+                }
+                <td>@prd.UnitPrice</td>
+                <td><a href="#" class="btn btn-default removeCart" data-id="@prd.ProductID">Sepetten Çıkar</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+<script src="~/Content/assets/js/required/jquery-1.11.1.min.js"></script>
+<script>
+        $(".removeCart").click(function () {
+            var id = $(this).attr("data-id");
+            $.ajax({
+                type: "POST",
+                url: "/Home/RemoveCart/" + id,
+                success: function (messageRemoveCart) {
+                    alert(messageRemoveCart);
+                    $.ajax({
+                        type: "GET",
+                        url: "/Home/PartialCartListView",
+                        success: function (response) {
+                            $("#sepetList").html(response);
+                        },
+                    });
+                    $.ajax({
+                        type: "GET",
+                        url: "/Product/PartialProductCountNav",
+                        success: function (response) {
+                            $("#sepet").html(response);
+                        },
+
+                        error: function () {
+                            alert("ürün sayısını getirme sırasında hata oluştu.");
+                        }
+
+                    });
+                },
+                error: function () {
+                    alert("Ürün sepetten silinirken  ajax hatası oluştu");
+                },
+            });
+        });
+
+</script>
